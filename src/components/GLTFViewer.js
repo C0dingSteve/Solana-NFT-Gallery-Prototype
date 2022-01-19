@@ -5,17 +5,16 @@ import { useGLTF, Environment } from '@react-three/drei'
 function Model({link}) {
   const group = useRef()
   const gltf = useGLTF(link)
+  console.log("gltf" + gltf.scene);
   return (
     <primitive object={gltf.scene} position={[0, 0, 0]} />
   )
 }
 
-//useGLTF.preload('https://bafybeidaknpdtvgn5v6poj2vxl4gfx2ii6uqmzfubcgbungd26d7iupnnq.ipfs.infura-ipfs.io')
-
-export default function ModelLoader({url}) {
+export default function GLTFViewer({url}) {
   return (
     <div className="App">
-      <Canvas camera={{ position: [0, 0, 10] }}>
+      <Canvas style={{width:'50px'}} camera={{ position: [0, 0, 10] }}>
         <ambientLight intensity={0.5} />
           <spotLight intensity={0.8} position={[300, 300, 400]} />
           <Suspense fallback={null}>

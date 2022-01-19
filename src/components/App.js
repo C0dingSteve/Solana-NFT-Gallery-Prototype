@@ -3,6 +3,7 @@ import { Container } from "react-bootstrap"
 import { AuthProvider } from "../contexts/AuthContext"
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
 import Dashboard from "./Dashboard"
+import Game from "./Game"
 import Login from "./Login"
 import PrivateRoute from "./PrivateRoute"
 import ForgotPassword from "./ForgotPassword"
@@ -12,7 +13,7 @@ import '../styles/global.css'
 
 function App(){
   return(
-    <Container 
+    <Container id="scene-container"
       className='d-flex align-items-center justify-content-center'
       style={{minHeight:'100vh'}}
       >
@@ -20,7 +21,7 @@ function App(){
         <Router>
           <AuthProvider>
             <Switch>
-              <PrivateRoute exact path='/' component={Dashboard} />
+              <PrivateRoute exact path='/' component={Game} />
               <PrivateRoute path='/candymint' component={Candymint} />
               <PrivateRoute path='/update-profile' component={UpdateProfile} />
               <Route path='/signup' component={Signup} />
@@ -32,5 +33,4 @@ function App(){
       </div>
     </Container>
 )};
-
 export default App

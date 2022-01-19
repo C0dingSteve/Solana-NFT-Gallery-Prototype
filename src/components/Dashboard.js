@@ -1,4 +1,4 @@
-import { useState } from "react"
+import React, {Component, useState } from "react"
 import { Card, Button, Alert } from "react-bootstrap"
 import { useAuth } from "../contexts/AuthContext"
 import { Link, useHistory } from "react-router-dom"
@@ -9,7 +9,7 @@ import Minter from "./Minter";
 import "@solana/web3.js";
 
 import PhantomConnect from "./PhantomConnect";
-import Wallet from './Wallet'
+import Wallet from './Wallet';
 
 export default function Dashboard() {
     const [error, setError] = useState('');
@@ -33,7 +33,6 @@ export default function Dashboard() {
             setError('Failed to logout');
         }
     }
-
     return (
         <>
             <Card>
