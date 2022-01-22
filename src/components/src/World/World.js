@@ -1,25 +1,31 @@
-
+// THREE JS imports
 import * as THREE from "three";
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { 
   TextureLoader,
   MeshBasicMaterial,
   BoxGeometry,
   Mesh,
-  MathUtils
+  MathUtils,
+  BoundingBoxHelper
 } from 'three';
 
+// Component imports
 import { createCamera } from './components/camera.js';
 import { createCube } from './components/cube.js';
-import { createLights } from './components/lights.js';
+import { createSceneLights } from './components/sceneLights.js';
 import { createScene } from './components/scene.js';
 
+// System imports
 import { createRenderer } from './systems/renderer.js';
 import { Resizer } from './systems/Resizer.js';
 import { Loop } from './systems/Loop.js';
 
-import GLTFInitializer from './utils/GLTFInitializer.js';
+// Helper imports
+import { GLTFInitializer } from './helpers/GLTFInitializer.js';
+import { createControls } from './helpers/controls.js';
+import { createObjectPlacer, updateCurrObj } from './helpers/objectPlacer.js';
 
 let scene;
 let camera;
@@ -52,16 +58,17 @@ class World {
       renderer = createRenderer();
       loop = new Loop(camera, scene, renderer);
 
+      renderer.domElement.insertAdjacentHTML('afterbegin', '<div style="background-color:red; width:100px; height:100px; position:fixed; bottom:0; right:0;"></div>')
       container.append(renderer.domElement);
       container.insertAdjacentHTML('beforeend', '<div class="scrolling-wrapper" id="scroller"></div>')
 
       //GLTF Loader
       const loader = new GLTFLoader();
 
-      //Add lights to the scene
-      const lights = createLights();
-      scene.add(lights['directionalLight']);
-      scene.add(lights['ambientLight']);
+      //Add SceneLights to the scene
+      const sceneLights = createSceneLights();
+      scene.add(sceneLights['directionalLight']);
+      scene.add(sceneLights['ambientLight']);
 
       //scene decore 
       const textureLoader = new TextureLoader();
@@ -81,24 +88,43 @@ class World {
       mesh.position.set(-0.0, 5.5, 0.4)
 
       // Add saloon to the scene
-      loader.load('saloon.glb',
-        (gltf) => {
-          gltf.scene.traverse((child) => {
-            child.material = bake;
-          })
-          scene.add(gltf.scene);
-        })
+      // loader.load('saloon.glb',
+      //   (gltf) => {
+      //     gltf.scene.traverse((child) => {
+      //       child.material = bake;
+      //     })
+      //     scene.add(gltf.scene);
+      //   })
         
+      // Load room using Draco Loader
+
+      const controls = createControls(camera, renderer, mesh);
+
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/gltf/');
+      loader.setDRACOLoader(dracoLoader);
+      let floor;
+      loader.load('living_room_big.gltf', gltf => {
+        gltf.scene.position.set(0, 0, 0);
+        floor = gltf.scene.getObjectByName('living_room').children[0];
+        const objectPlacer = createObjectPlacer(gltf.scene.getObjectByName('living_room').children[0], camera, controls);
+        scene.add(objectPlacer);
+        scene.add(gltf.scene);
+
+      });
+
       //Load the first model into the scene
       loader.loadAsync(URLarray[0]).then(gltf => {
+        gltf = GLTFInitializer(gltf, floor);
         l = gltf.scene;
+        updateCurrObj(l);
          
         gltf.scene.tick = (delta) =>{
           gltf.scene.rotation.y += MathUtils.degToRad(30) * delta;
         }
 
         loop.updatables.push(gltf.scene);
-        scene.add(GLTFInitializer(gltf).scene);
+        scene.add(gltf.scene);
       });
       
       // Fetch the models using the URLArray into the models array
@@ -112,22 +138,10 @@ class World {
           console.log(err)
         });
       });
+
       // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CONTROLS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target = mesh.position;
-      controls.minDistance = 5;
-      controls.maxDistance = 12;
-      controls.enableDamping = true;
-      controls.update();
-      //animation
-      const tick = () => {
-        controls.update()
-        renderer.render(scene, camera)
-        window.requestAnimationFrame(tick)
-      }
 
-      // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ OTHER SPECIFICS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       // Drag and Drop features
 
@@ -155,25 +169,28 @@ class World {
           //removing previous model and replacing with the new dropped model
           scene.remove(l);
           console.log(this.id);
-          let gltf = models[parseInt(this.id)];
+          let gltf = GLTFInitializer(models[parseInt(this.id)], floor);
           l = gltf.scene;
-         
+          updateCurrObj(l);
+
           gltf.scene.tick = (delta) =>{
             gltf.scene.rotation.y += MathUtils.degToRad(30) * delta;
           }
   
           loop.updatables.push(gltf.scene);
-          scene.add(GLTFInitializer(gltf).scene);
+          scene.add(gltf.scene);
         }
       }
+ 
+       function dragOver() {
+         checker = 1;
+       }
+ 
+       function dragDrop() {
+         checker = 1;
+       }
 
-      function dragOver() {
-        checker = 1;
-      }
-
-      function dragDrop() {
-        checker = 1;
-      }
+      // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ OTHER SPECIFICS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
       const resizer = new Resizer(container, camera, renderer);
   }

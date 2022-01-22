@@ -9,8 +9,9 @@ function createCamera() {
   // );
 
   // move the camera back so we can view the scene
-  camera.position.set(0, 15, 20);
-  camera.rotation.set(MathUtils.degToRad(-30), 0, 0);
+  camera.position.set(20, 5, 20);
+  camera.lookAt(0,0,0);
+  //camera.rotation.set(MathUtils.degToRad(-45), 0, 0);
 
   return camera;
 }

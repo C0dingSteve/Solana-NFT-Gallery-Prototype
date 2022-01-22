@@ -7,7 +7,7 @@ import Gallery from './src/Gallery.js';
 export default function Game() {
     return (
         <div>
-            <Dashboard />
+            {/* <Dashboard /> */}
             <Gallery />
         </div>
     )
